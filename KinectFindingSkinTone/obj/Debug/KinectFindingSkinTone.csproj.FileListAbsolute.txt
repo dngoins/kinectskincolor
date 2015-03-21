@@ -1,0 +1,15 @@
+C:\codeplex\kinectskincolor\KinectFindingSkinTone\bin\x64\Debug\KinectFindingSkinTone.exe.config
+C:\codeplex\kinectskincolor\KinectFindingSkinTone\bin\x64\Debug\KinectFindingSkinTone.exe
+C:\codeplex\kinectskincolor\KinectFindingSkinTone\bin\x64\Debug\KinectFindingSkinTone.pdb
+C:\codeplex\kinectskincolor\KinectFindingSkinTone\bin\x64\Debug\Microsoft.Kinect.Face.dll
+C:\codeplex\kinectskincolor\KinectFindingSkinTone\bin\x64\Debug\Microsoft.Kinect.Face.xml
+C:\codeplex\kinectskincolor\KinectFindingSkinTone\obj\Debug\KinectFindingSkinTone.csprojResolveAssemblyReference.cache
+C:\codeplex\kinectskincolor\KinectFindingSkinTone\obj\Debug\MainWindow.baml
+C:\codeplex\kinectskincolor\KinectFindingSkinTone\obj\Debug\MainWindow.g.cs
+C:\codeplex\kinectskincolor\KinectFindingSkinTone\obj\Debug\App.g.cs
+C:\codeplex\kinectskincolor\KinectFindingSkinTone\obj\Debug\KinectFindingSkinTone_MarkupCompile.cache
+C:\codeplex\kinectskincolor\KinectFindingSkinTone\obj\Debug\KinectFindingSkinTone.g.resources
+C:\codeplex\kinectskincolor\KinectFindingSkinTone\obj\Debug\KinectFindingSkinTone.Properties.Resources.resources
+C:\codeplex\kinectskincolor\KinectFindingSkinTone\obj\Debug\KinectFindingSkinTone.csproj.GenerateResource.Cache
+C:\codeplex\kinectskincolor\KinectFindingSkinTone\obj\Debug\KinectFindingSkinTone.exe
+C:\codeplex\kinectskincolor\KinectFindingSkinTone\obj\Debug\KinectFindingSkinTone.pdb
