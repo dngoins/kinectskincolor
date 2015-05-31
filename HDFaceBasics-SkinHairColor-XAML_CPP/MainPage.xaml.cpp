@@ -68,7 +68,7 @@ m_wroteHeader(false)
 
 	this->bitmap = ref new Windows::UI::Xaml::Media::Imaging::WriteableBitmap(colorWidth, colorHeight);
 
-	this->bitmapNoBkg = ref new Windows::UI::Xaml::Media::Imaging::WriteableBitmap(colorWidth, colorHeight);
+	//this->bitmapNoBkg = ref new Windows::UI::Xaml::Media::Imaging::WriteableBitmap(colorWidth, colorHeight);
 
 	
 	this->DataContext = this;
@@ -95,7 +95,7 @@ void MainPage::StatusText::set(String^ value)
 
 ImageSource^ MainPage::KinectImageSource::get()
 {
-	return this->bitmapNoBkg;
+	return this->bitmap;
 }
 
 
@@ -776,6 +776,10 @@ void Microsoft::Samples::Kinect::HDFaceBasics::MainPage::OnMultiSourceFrameArriv
 	// If the Frame has expired by the time we process this event, return.
 	if (multiSourceFrame == nullptr)
 	{
+		delete multiSourceFrame;
+		delete depthFrame;
+		delete colorFrame;
+		delete bodyIndexFrame;
 		return;
 	}
 
@@ -791,6 +795,10 @@ void Microsoft::Samples::Kinect::HDFaceBasics::MainPage::OnMultiSourceFrameArriv
 		// The "finally" statement will Dispose any that are not null.
 		if ((depthFrame == nullptr) || (colorFrame == nullptr) || (bodyIndexFrame == nullptr))
 		{
+			delete multiSourceFrame;
+			delete depthFrame;
+			delete colorFrame;
+			delete bodyIndexFrame;
 			return;
 		}
 
@@ -807,38 +815,14 @@ void Microsoft::Samples::Kinect::HDFaceBasics::MainPage::OnMultiSourceFrameArriv
 
 		// We're done with the DepthFrame 
 		//depthFrame->Dispose();
-		//((IDisposable^)(depthFrame))->Dispose();
+		depthFrame = nullptr;
+		delete depthFrame;
 
-		//depthFrame = nullptr;
-
-		
 		// We must force a release of the IBuffer in order to ensure that we have dropped all references to it.		
-		
+
 		depthFrameData = nullptr;
+		delete depthFrameData;
 
-		//DataReader^ dataReader = DataReader::FromBuffer(depthFrameData);
-		//auto data = ref new Platform::Array<USHORT>(depthFrameData->Length);
-		//UINT ndx = 0;
-		//// read the data into the stream in chunks of buffer size
-		//while (dataReader->UnconsumedBufferLength > 0) {
-		//	UINT chunkSize = min(depthFrameData->Length, dataReader->UnconsumedBufferLength);
-		//	data->set(ndx, dataReader->ReadInt16());
-		//	ndx++;
-		//}
-
-		//Array<USHORT>^ data = ref new Array<USHORT>(depthWidth * depthHeight);
-		//depthFrame->CopyFrameDataToArray(data);
-		//
-		//this->coordinateMapper->MapColorFrameToDepthSpace(
-		//	data,
-		//	this->colorMappedToDepthPoints);
-
-
-		//// We're done with the DepthFrame 
-		////depthFrame->Close();
-		//depthFrame = nullptr;
-
-		
 		//colorFrame->CopyRawFrameDataToBuffer(this->bitmap->PixelBuffer);
 		auto colorFrameDescription = colorFrame->FrameDescription;
 		auto colorProcessed = false;
@@ -848,54 +832,40 @@ void Microsoft::Samples::Kinect::HDFaceBasics::MainPage::OnMultiSourceFrameArriv
 		clrHeight = colorFrameDescription->Height;
 
 		UINT length = colorFrame->FrameDescription->LengthInPixels * colorFrame->FrameDescription->BytesPerPixel;
-
-		//IBuffer^ buffer = ref new Buffer(length);
-		colorFrame->CopyConvertedFrameDataToBuffer(	this->bitmap->PixelBuffer, ColorImageFormat::Bgra);
-		
-		//IBuffer^ buffer = colorFrame->LockRawImageBuffer();
+		colorFrame->CopyConvertedFrameDataToBuffer(this->bitmap->PixelBuffer, ColorImageFormat::Bgra);
+		colorFrame = nullptr;
+		delete colorFrame;
 
 		/*IBuffer^ buffer = this->bitmap->PixelBuffer;
 		UINT16* pSrc = reinterpret_cast<UINT16*>(DX::GetPointerToPixelData(buffer));
 		*/// Get the buffer from the WriteableBitmap:
 		IBuffer^ pixelBuffer = bitmap->PixelBuffer;
-		IBuffer^ pixelBufferNoBkg = bitmapNoBkg->PixelBuffer;
 
 		// Convert from C++/CX to the ABI IInspectable*:
 		ComPtr<IInspectable> bufferInspectable(DX::AsInspectable(pixelBuffer));
-		ComPtr<IInspectable> bufferInspectableNoBkg(DX::AsInspectable(pixelBufferNoBkg));
-
-		// Get the IBufferByteAccess interface:
-		ComPtr<IBufferByteAccess> pxlbufferBytes;
-		DX::ThrowIfFailed(bufferInspectable.As(&pxlbufferBytes));
-
-		ComPtr<IBufferByteAccess> pxlbufferBytesNoBkg;
-		DX::ThrowIfFailed(bufferInspectableNoBkg.As(&pxlbufferBytesNoBkg));
-
-		// Use it:
 		byte* pixels(nullptr);
-		DX::ThrowIfFailed(pxlbufferBytes->Buffer(&pixels));
 
-		byte* pixelsNoBkg(nullptr);
-		DX::ThrowIfFailed(pxlbufferBytesNoBkg->Buffer(&pixelsNoBkg));
+		try
+		{
+			// Get the IBufferByteAccess interface:
+			ComPtr<IBufferByteAccess> pxlbufferBytes;
+			DX::ThrowIfFailed(bufferInspectable.As(&pxlbufferBytes));
 
-		//BYTE* pColorBuffer = DX::GetPointerToPixelData(this->bitmap->PixelBuffer);
-				
-		//colorFrame->CopyConvertedFrameDataToBuffer(this->bitmap->PixelBuffer, ColorImageFormat::Bgra);
-
-		//colorBuffer = nullptr;
-		UINT* pDest = reinterpret_cast<UINT*>(pixels);
-		UINT* pDestNoBkg = reinterpret_cast<UINT*>(pixelsNoBkg);
-
-		//if (nullptr != pDest)
-		//{
-		//	memcpy(pDest, pSrc, length); // yuy2
+			// Use it:			
+			DX::ThrowIfFailed(pxlbufferBytes->Buffer(&pixels));
 			colorProcessed = true;
-		//}	
-		//
-		//
-		colorFrame = nullptr;
+			pxlbufferBytes = nullptr;
+		}
+		catch (const std::exception&)
+		{
+			delete multiSourceFrame;
+			delete depthFrame;
+			delete colorFrame;
+			delete bodyIndexFrame;
+			return;
+		}
 
-
+		UINT* pDest = reinterpret_cast<UINT*>(pixels);
 		FrameDescription^ bodyIndexFrameDescription = bodyIndexFrame->FrameDescription;
 
 		// Access the body index frame data directly via LockImageBuffer to avoid making a copy
@@ -911,80 +881,110 @@ void Microsoft::Samples::Kinect::HDFaceBasics::MainPage::OnMultiSourceFrameArriv
 		// Use it:
 		byte* bodyIndexBytes(nullptr);
 		DX::ThrowIfFailed(bodyIndexBufferBytes->Buffer(&bodyIndexBytes));
-						
-		
+
+		bodyIndexFrame = nullptr;
+		delete bodyIndexFrame;
+
+
 		int colorMappedToDepthPointCount = mappedPointsLength;
-
-		//auto bitmapBackBufferBytes = (BYTE*)this->bitmap->PixelBuffer;
-
 		// Treat the color data as 4-byte pixels
-		auto bitmapPixelsPointer = (UINT*)pDest;
+		//auto bitmapPixelsPointer = (UINT*)pDest;
+
+		//TODO: Fix background removal performance issues
+		//The below code causes performance issues
+		//will need to do this using another algorithm.
+		//maybe starting with a zero Bitmap
+		//and then only loopin through a region of the 
+		//bitmap based on widest and tallest pixels of body joints
+#if INCLUDE_COLOR
 
 		// Loop over each row and column of the color image
 		// Zero out any pixels that don't correspond to a body index
 		for (UINT colorIndex = 0; colorIndex < colorMappedToDepthPointCount; ++colorIndex)
 		{
 			auto depthPts = this->colorMappedToDepthPoints;
-			float colorMappedToDepthX = depthPts->get(colorIndex).X;
-			float colorMappedToDepthY = depthPts->get(colorIndex).Y;
+			auto depthPt = depthPts->get(colorIndex);
 
 			// The sentinel value is -inf, -inf, meaning that no depth pixel corresponds to this color pixel.
-
-			if ((colorMappedToDepthX != -std::numeric_limits<float>::infinity()) && (colorMappedToDepthY != -std::numeric_limits<float>::infinity()))
+			if ((depthPt.X == -std::numeric_limits<float>::infinity()) || (depthPt.Y == -std::numeric_limits<float>::infinity()))
 			{
-				// Make sure the depth pixel maps  to a valid point in color space
-				int depthX = (int)(colorMappedToDepthX + 0.5f);
-				int depthY = (int)(colorMappedToDepthY + 0.5f);
+				pDest[colorIndex] = 0;
+				continue;
+			}
 
-				// If the point is not valid, there is no body index there.
-				if ((depthX >= 0) && (depthX < depthWidth) && (depthY >= 0) && (depthY < depthHeight))
+			// Make sure the depth pixel maps  to a valid point in color space
+			int depthX = (int)(depthPt.X + 0.5f);
+			int depthY = (int)(depthPt.Y + 0.5f);
+
+			// If the point is not valid, there is no body index there.
+			if ((depthX >= 0) && (depthX < depthWidth) && (depthY >= 0) && (depthY < depthHeight))
+			{
+				int depthIndex = (depthY * depthWidth) + depthX;
+
+				// If we are tracking a body for the current pixel, do not zero out the pixel
+				BYTE player = bodyIndexBytes[depthIndex];
+				if (player != 0xff)
 				{
-					int depthIndex = (depthY * depthWidth) + depthX;
+					//really do nothing because pDest already has the pixeels
+					//pDest[colorIndex] = bitmapPixelsPointer[colorIndex];
+					continue;
 
-					// If we are tracking a body for the current pixel, do not zero out the pixel
-					BYTE player = bodyIndexBytes[depthIndex];
-					if ( player != 0xff)
-					{	
-						pDestNoBkg[colorIndex] = bitmapPixelsPointer[colorIndex];
-						continue;
-					}
-					
 				}
 			}
-			bitmapPixelsPointer[colorIndex] = 0;
+			pDest[colorIndex] = 0;
+
 		}
 
-		//if (colorProcessed)
-		this->bitmap->Invalidate();
-		this->bitmapNoBkg->Invalidate();
 
-		pixels = nullptr;
-		pxlbufferBytes = nullptr;
+#endif
+
+		if (colorProcessed)
+			this->bitmap->Invalidate();
+
 		bufferInspectable = nullptr;
 		pDest = nullptr;
-
-		pixelsNoBkg = nullptr;
-		pxlbufferBytesNoBkg = nullptr;
-		bufferInspectableNoBkg = nullptr;
-		pDestNoBkg = nullptr;
-
 		bodyIndexFrameData = nullptr;
 		bodyIndexBytes = nullptr;
-		bitmapPixelsPointer = nullptr;
-
+		//bitmapPixelsPointer = nullptr;
 		bodyIndexInspectable = nullptr;
+		bodyIndexBufferBytes = nullptr;
+		bodyIndexBytes = nullptr;
+
+		pixels = nullptr;
+		delete pixels;
+		//bitmapPixelsPointer = nullptr;
+		//delete bitmapPixelsPointer;
 
 		bodyIndexBufferBytes = nullptr;
 		bodyIndexBytes = nullptr;
-		
+		delete bodyIndexBytes;
+
+		pDest = nullptr;
+		delete pDest;
+
+
 	}
 	catch (exception e)
-	{ }
-	
-//	((IDisposable^)bodyIndexFrame)->Dispose();
+	{
+
+		depthFrame = nullptr;
+		colorFrame = nullptr;
+		bodyIndexFrame = nullptr;
+		multiSourceFrame = nullptr;
+		delete depthFrame;
+		delete colorFrame;
+		delete bodyIndexFrame;
+		delete multiSourceFrame;
+
+	}
+
+	//	((IDisposable^)bodyIndexFrame)->Dispose();
 	depthFrame = nullptr;
 	colorFrame = nullptr;
 	bodyIndexFrame = nullptr;
 	multiSourceFrame = nullptr;
-
+	delete depthFrame;
+	delete colorFrame;
+	delete bodyIndexFrame;
+	delete multiSourceFrame;
 }
